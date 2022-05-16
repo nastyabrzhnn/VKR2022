@@ -1,0 +1,1045 @@
+
+############### Загрузка пакетов #################
+install.packages("readxl")
+install.packages("AER")
+install.packages("sandwich")
+install.packages("lmtest")
+install.packages("car")
+install.packages("stargazer")
+install.packages("ggplot2")
+install.packages('ExPanDaR')
+install.packages('dplyr')
+install.packages('MASS')
+install.packages('plm')
+install.packages('data.table')
+install.packages('corrplot')
+install.packages("gridExtra")
+install.packages("FactoMineR")
+install.packages("factoextra")
+install.packages("tidyverse")
+install.packages("corrr")
+install.packages("igraph")
+install.packages("ggraph")
+install.packages("gggforce")
+install.packages("ggfortify")
+install.packages('sampleSelection')
+
+
+
+library("readxl")
+library("AER")
+library("sandwich")
+library("lmtest")
+library(car)
+library("stargazer")
+library("ggplot2")
+library('ExPanDaR')
+library('dplyr')
+library('MASS')
+library('plm')
+library('dplyr')
+library('car')
+library('data.table')
+library('corrplot')
+library("gridExtra")
+library("FactoMineR")
+library("factoextra")
+library(tidyr)
+library(tibble)
+library(tidyverse)
+library(corrr)
+library(igraph)
+library(ggraph)
+library(ggforce)
+library(ggfortify)
+library(sampleSelection)
+
+########## Загрузка и обработка данных ############
+
+art <- read_excel("Desktop/FinalDATASETDIPLOM.xlsx")
+art$Born <- as.numeric(art$Born)
+art$Died <- as.numeric(art$Died)
+art$Dead <- as.numeric(art$Dead)
+art$Ages <- as.numeric(art$Ages)
+art$Width <- as.numeric(art$Width)
+art$Height <- as.numeric(art$Height)
+art$Depth <- as.numeric(art$Depth)
+art$Signed <- as.numeric(art$Signed)
+art$Stamped <- as.numeric(art$Stamped)
+art$Inscribed <- as.numeric(art$Inscribed)
+art$Dating <- as.numeric(art$Dating)
+art$LotNum <- as.numeric(art$LotNum)
+art$Date <- as.Date(art$Date, format = "%m-%d-%Y")
+art$Day <- as.numeric(art$Day)
+art$Month <- as.numeric(art$Month)
+art$Year <- as.numeric(art$Year)
+art$SothChr <- as.numeric(art$SothChr)
+art$Premium <- as.numeric(art$Premium)
+art$AucPrice <- as.numeric(art$AucPrice)
+art$EstMin <- as.numeric(art$EstMin)
+art$EstMax <- as.numeric(art$EstMax)
+art$Currency <- as.numeric(art$Currency)
+art$Type <- as.numeric(art$Type)
+art$USA <- as.numeric(art$USA)
+art$Medium <- as.numeric(art$Medium)
+
+
+cse <- function(reg){
+  rob <- sqrt(diag(vcovHC(reg, type="HC1")))
+  return(rob)
+}
+
+
+
+########### Чистка выбросов ##########
+
+#Высота
+art <-  dplyr::filter(art, Height> 10)
+art <-  dplyr::filter(art, Height<150)
+
+ggplot(art) + 
+  aes(x = Height) + 
+  geom_histogram(bins = 30L, fill = 'lightpink', color = "black") + 
+  theme_minimal() + labs(x = 'Высота', y='Количество работ', Title = "Распредление выборки по высоте")
+
+art$Height <-  art$Height/100
+
+#Ширина
+art <-  dplyr::filter(art, Width> 10)
+art <-  dplyr::filter(art, Width< 150)
+
+#Щирина
+ggplot(art) + 
+  aes(x = Width) + 
+  geom_histogram(bins = 30L, fill = "lightpink", color = "black") + 
+  theme_minimal() + labs(x = 'Ширина', y='Количество работ', Name = '')
+
+art$Width <-  art$Width/100
+
+#Номер лота
+art <-  dplyr::filter(art, LotNum< 1500)
+art <-  dplyr::filter(art, LotNum> 0)
+
+ggplot(art) + 
+  aes(x = LotNum) + 
+  geom_histogram(bins = 30L, fill = "lightpink", color = "black" ) + 
+  theme_minimal() + labs(x = 'РќРѕРјРµСЂ Р»РѕС‚Р°', y='РљРѕР»РёС‡РµСЃС‚РІРѕ Р°СЂС‚-РѕР±СЉРµРєС‚РѕРІ', Name = "Р Р°СЃРїСЂРµРґРµР»РµРЅРёРµ РїРѕ РЅРѕРјРµСЂСѓ Р»РѕС‚Р°")
+
+
+
+#Цена
+ggplot(art) + 
+  aes(x = AucPrice) + 
+  geom_histogram(bins = 30L, fill = "lightpink", color = "black") + 
+  theme_classic() + labs(x = 'Дата', y = 'Цена работы', title = "Распределение выборки по цене")
+
+art <-  dplyr::filter(art, EstMin> 0)
+art <-  dplyr::filter(art, EstMax> 0)
+
+#Дата
+ggplot(data = art, aes(x = Date)) + geom_bar(fill = 'lightpink', color = " black", width=4) +
+  labs(x = 'Р”Р°С‚Р°', y='РљРѕР»РёС‡РµСЃС‚РІРѕ С‚СЂР°РЅР•Р°РєС†РёР№')+theme_classic()
+
+
+
+
+########### Описательная статистика ###########
+
+summary(art)
+
+#цена
+#вся выборка
+median(art$AucPrice, 'na.rm' = TRUE)
+mean(art$AucPrice, 'na.rm' = TRUE)
+min(art$AucPrice, 'na.rm' = TRUE)
+max(art$AucPrice, 'na.rm' = TRUE)
+var(art$AucPrice, 'na.rm' = TRUE)
+sd(art$AucPrice, 'na.rm' = TRUE)
+
+#для гедонистической
+median(sales$AucPrice, 'na.rm' = TRUE)
+mean(sales$AucPrice, 'na.rm' = TRUE)
+min(sales$AucPrice, 'na.rm' = TRUE)
+max(sales$AucPrice, 'na.rm' = TRUE)
+var(sales$AucPrice, 'na.rm' = TRUE)
+sd(sales$AucPrice, 'na.rm' = TRUE)
+
+#по времени
+median(time1$AucPrice, 'na.rm' = TRUE)
+median(time2$AucPrice, 'na.rm' = TRUE)
+median(time3$AucPrice, 'na.rm' = TRUE)
+mean(time1$AucPrice, 'na.rm' = TRUE)
+mean(time2$AucPrice, 'na.rm' = TRUE)
+mean(time3$AucPrice, 'na.rm' = TRUE)
+
+#эстимейты
+median(art$EstMin, 'na.rm' = TRUE)
+mean(art$EstMin, 'na.rm' = TRUE)
+min(art$EstMin, 'na.rm' = TRUE)
+max(art$EstMin, 'na.rm' = TRUE)
+var(art$EstMin, 'na.rm' = TRUE)
+sd(art$EstMin, 'na.rm' = TRUE)
+
+median(art$EstMax, 'na.rm' = TRUE)
+mean(art$EstMax, 'na.rm' = TRUE)
+min(art$EstMax, 'na.rm' = TRUE)
+max(art$EstMax, 'na.rm' = TRUE)
+var(art$EstMax, 'na.rm' = TRUE)
+sd(art$EstMax, 'na.rm' = TRUE)
+
+#Сколько мёртвых художников?
+mean(art$Dead, 'na.rm' = TRUE)
+
+#СЂР°СЃРїСЂРµРґРµР»РµРЅРёРµ РїРѕ РІСЂРµРјРµРЅРё
+ggplot(data = art, aes(x = Date)) + geom_bar(fill = 'lightpink', color = "lightpink", width=4) +
+  labs(x = 'Р”Р°С‚Р°', y='РљРѕР»РёС‡РµСЃС‚РІРѕ С‚СЂР°РЅР•Р°РєС†РёР№', Name = "Р Р°СЃРїСЂРµР»РµРЅРёРµ С‚СЂР°РЅР•Р°РєС†РёР№ РїРѕ РІСЂРµРјРµРЅРё")+theme_classic()
+
+#распределение продаж по годам
+table(art$Month)
+ggplot(data = art, aes(x = Month)) + geom_bar() + theme_classic() +   labs(x = 'РњРµСЃСЏС†', y='РљРѕР»РёС‡РµСЃС‚РІРѕ С‚СЂР°РЅР•Р°РєС†РёР№')
+
+#распределение на рынки
+table(art$Currency)
+
+
+
+data <- read_excel("Desktop/data.xlsx")
+
+ggplot(data) + 
+  geom_bar(aes(x=year, y=value),stat="identity", fill="grey",colour="white")+ 
+  geom_line(aes(x=year, y=number*10000),stat="identity",color="red")+ 
+  labs(title= "Объем рынка и количество продаж", 
+       x="Год",y="Рынок американского искусства с 2004") 
+
+################### РЕГРЕССИИ #################
+
+#ОЧИЩАЕМ ОТ НЕНУЖНЫХ ПЕРЕМЕННЫХ
+
+sales <- subset(art, select = c(-Date, - USA, - Name, - Dead, - Born, - Died, - Depth, - Square, - Medium))
+sales <-  dplyr::filter(sales, AucPrice>62)
+sales <-  dplyr::filter(sales, AucPrice<250000)
+
+
+#описательные статистики
+
+stargazer(as.data.frame(sales), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE, median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика набора данных", 
+          out="describe.html")
+
+#КОРРЕЛЯЦИИ
+corrplot(cor(sales))
+cor(sales)
+?corrplot.mixed
+
+cor_mat <- cor(sales)
+cor_mat[!lower.tri(cor_mat)] <- NA
+data.frame(cor_mat) %>%
+  rownames_to_column() %>%
+  gather(key="variable", value="correlation", -rowname) %>%
+  filter(abs(correlation) > 0.1)
+d <- sales
+tidy_cors <- d %>%
+  correlate() %>%
+  stretch()
+
+graph_cors <- tidy_cors %>%
+  filter(abs(r) > 0.1) %>%
+  graph_from_data_frame(directed = FALSE)
+
+ggraph(graph_cors) +
+  geom_edge_link(aes(edge_alpha = abs(r), edge_width = abs(r), color = r)) +
+  guides(edge_alpha = "none", edge_width = "none") +
+  scale_edge_colour_gradientn(limits = c(-1, 1), colors = c("firebrick2", "dodgerblue2")) +
+  geom_node_point(color = "blue", size = 5) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_graph() +
+  labs(title = "Correlations")
+
+
+
+#Дата
+ggplot(data = sales, aes(x = Date)) + geom_bar(fill = 'lightpink', width=2) +
+  labs(x = 'Дата', y='Количество продаж')+theme_classic()
+
+#ДЕЛАЕМ ФАКТОРНЫМИ
+sales$Month <- as.factor(sales$Month)
+sales$Year <- as.factor(sales$Year)
+sales$Currency <- as.factor(sales$Currency)
+sales$Type <- as.factor(sales$Type)
+
+################## HEDONIC REGRESSION ####################
+
+mod_0 <- lm(AucPrice ~ . , data = sales)
+#summary(mod_0)
+
+#stargazer(mod_0,
+# title="mod0", type="text",
+#  se=list(cse(mod_0)),
+#  df=FALSE)
+
+mod_1 <- lm(AucPrice ~ . -Height - Width + Height*Width, data = sales)
+#summary(mod_1)
+#stargazer(mod_1,
+#         title="mod1", type="text",
+#        se=list(cse(mod_1)),
+#       df=FALSE)
+
+AIC(mod_0, mod_1)
+
+#сравниваем модель с площадью и без – с площадью (1) лучше
+
+#нужен ли логарифм - нужен
+boxCox(mod_1)
+#добавляем логарифм
+
+
+mod_2 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width, data = sales)
+#summary(mod_2)
+#stargazer(mod_2,
+#         title="mod2", type="text",
+#        se=list(cse(mod_2)),
+#       df=FALSE)
+
+#сравниваем по акаике лучше ли с логарифмом - да
+AIC(mod_1, mod_2)
+#графики не очень - а что с этим делать?
+plot(mod_2, which = 1)
+plot(mod_2, which = 2)
+plot(mod_2, which = 3)
+
+#мультиколлинеарности нет
+vif(mod_2) #мультиколлинеарности нет
+
+
+bptest(mod_2) #нет зависимости ошибок от регрессоров
+
+resettest(mod_2) #отвергается, есть пропущенные степени
+
+# расстояние Кука
+Cook <- cooks.distance(mod_2)
+plot(Cook, type = "h")
+abline(h = 1)
+
+
+LowCook_data <- sales[-which(Cook > 1),]
+
+mod_lowcook <- update(mod_2, .~., data=LowCook_data)
+#stargazer(mod_lowcook,
+#          title="lowcook", type="text",
+#         se=list(cse(mod_lowcook)),
+#        df=FALSE)
+plot(mod_lowcook, which = 1)
+plot(mod_lowcook, which = 2)
+plot(mod_lowcook, which = 3)
+
+#stargazer(mod_2,mod_lowcook,
+#         title="lowcook", type="text",
+#        se=list(cse(mod_2), cse(mod_lowcook)),
+#       column.labels=c("original", "lowcook"),
+#      df=FALSE)
+
+
+# hat-values
+H <- hatvalues(mod_2)
+plot(H, type = "h")
+which(H>0.2)
+# нет сильных выбросов в данных, выборка достаточно однородная, есть один выброс, тот же что и в расстоянии Кука
+
+H <- hatvalues(mod_lowcook)
+AIC(mod_2, mod2.1)
+#спецификация
+mod2.1 <- update(mod_lowcook, .~. -EstMin -EstMax + log(EstMin) + log(EstMax))
+#stargazer(mod2.1,
+#         title="lowcook", type="text",
+#        se=list(cse(mod2.1)),
+#       df=FALSE)
+
+anova(mod_lowcook, mod2.1)
+stepAIC(mod2.1)
+
+mod2.2 <- update(mod2.1, .~. -Day)
+
+anova(mod2.1, mod2.2) #лучше модель без дня
+
+vif(mod2.3)
+summary(mod2.2)
+resettest(mod2.2)
+bptest(mod2.2)
+
+plot(mod2.2, which = 1)
+plot(mod2.2, which = 2)
+plot(mod2.2, which = 3)
+
+stargazer(mod2.2,
+          title="Гедонистическая регрессия", type="html",out = "hedonic.html",
+          se=list(cse(mod2.2)),
+          df=FALSE)
+
+#проверка эстимейтов
+
+mod2.3 <- update(mod2.2, .~.  - log(EstMax))
+summary(mod2.3)
+
+stargazer(mod2.3,
+          title="Гедонистическая регрессия", type="html",out = "ESTIM.html",
+          se=list(cse(mod2.3)),
+          df=FALSE)
+
+
+modmin <- lm(I(log(EstMin)) ~ . + Height*Width - Height - Width - EstMax - AucPrice, data = sales)
+summary(modmin)
+modmax <- lm(I(log(EstMax)) ~ . + Height*Width - Height - Width - EstMin - AucPrice, data = sales)
+summary(modmax)
+modprice <- lm(I(log(AucPrice)) ~ . + Height*Width - Height - Width - EstMin - EstMax, data = sales)
+summary(modprice)
+
+stargazer(modmin,modmax, modprice,
+          title="Сравнение", type="html",out = "comparing.html",
+          se=list(cse(modmin), cse(modmax), cse(modprice)),
+          column.labels=c("МИН", "МАКС", "ЦЕНА"),
+          df=FALSE)
+
+
+#создаём инструментальную переменную
+
+cor(minestim, sales$EstMin)
+minestim <-  fitted(modmin)
+maxestim <- fitted(modmax)
+
+modNEW <- lm(I(log(AucPrice)) ~ . - EstMin - EstMax + minestim, data = sales)
+summary(modNEW)
+
+stargazer(modNEW,
+          title="Гедонистическая регрессия", type="html",out = "istrumental.html",
+          se=list(cse(modNEW)),
+          df=FALSE)
+
+#сравнение моделей с и без логарифма
+
+mod2.4 <- update(mod2.2, .~. -log(EstMin) - log(EstMax))
+
+#stargazer(mod2.3,
+#         title="lowcook", type="text",
+#        se=list(cse(mod2.3)),
+#       df=FALSE)
+
+AIC(mod2.2,mod2.4)
+
+stargazer(mod2.2,mod2.4,
+          title="Гедонистические регрессии", type="html", out = "withorwithoutestim.html",
+          se=list(cse(mod2.2), cse(mod2.4)),
+          column.labels=c("С предварительными оценками", "Без предварительных оценок"),
+          df=FALSE)
+
+
+
+
+############## YEAR REGRESSION ########
+
+sales <- subset(art, select = c( - USA, - Name, - Dead, - Born, - Died, - Depth, - Square, - Medium))
+sales <-  dplyr::filter(sales, AucPrice>62)
+sales <-  dplyr::filter(sales, AucPrice<250000)
+
+sales$Year <- as.numeric(sales$Year)
+
+#Делаем субсеты
+
+time3 <- dplyr::filter(sales, Year>2016)
+
+time2 <- dplyr::filter(sales, Year<2016)
+time2 <- dplyr::filter(sales, Year>2008)
+
+time1 <- dplyr::filter(sales, Year<2009)
+
+#graphs
+
+ggplot(time1) + 
+  aes(x = Date) + 
+  geom_histogram(bins = 30L, fill = "lightpink", color = "black") + 
+  theme_classic() + labs(x = 'Время', y='Количество продаж', Name = "2004-2008 годы")
+
+ggplot(time2) + 
+  aes(x = Date) + 
+  geom_histogram(bins = 30L, fill = "lightpink", color = "black") + 
+  theme_classic() + labs(x = 'Время', y='Количество продаж', Name = "2009-2015 годы")
+
+ggplot(time3) + 
+  aes(x = Date) + 
+  geom_histogram(bins = 30L, fill = "lightpink", color = "black") + 
+  theme_classic() + labs(x = 'Время', y='Количество продаж', Name = "2020-2021 годы")
+
+#описательная статистика
+
+stargazer(as.data.frame(time1), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика первого периода", 
+          out="describe1.html")
+
+stargazer(as.data.frame(time2), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика второго периода", 
+          out="describe2.html")
+
+stargazer(as.data.frame(time3), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика третьего периода", 
+          out="describe3.html")
+
+#регрессия
+
+time1$Month <- as.factor(time1$Month)
+time1$Year <- as.factor(time1$Year)
+time1$Currency <- as.factor(time1$Currency)
+time1$Type <- as.factor(time1$Type)
+time2$Month <- as.factor(time2$Month)
+time2$Year <- as.factor(time2$Year)
+time2$Currency <- as.factor(time2$Currency)
+time2$Type <- as.factor(time2$Type)
+time3$Month <- as.factor(time3$Month)
+time3$Year <- as.factor(time3$Year)
+time3$Currency <- as.factor(time3$Currency)
+time3$Type <- as.factor(time3$Type)
+
+
+mod_t_1 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width -EstMin-EstMax + log(EstMax) + log(EstMin) - Date, data = time1)
+#summary(mod_t_1)
+mod_t_2 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width -EstMin-EstMax + log(EstMax) + log(EstMin) - Date, data = time2)
+#summary(mod_t_2)
+mod_t_3 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width -EstMin-EstMax + log(EstMax) + log(EstMin)  - Date, data = time3)
+#summary(mod_t_1)
+
+stargazer(mod_t_1,mod_t_2,mod_t_3, 
+          title="Гедонистические регрессии по временным периодам", type="text", out = "По периодам с логами.html",
+          se=list(cse(mod_t_1), cse(mod_t_2), cse(mod_t_3)),
+          column.labels=c("2004-2008 годы", "2009-2015 годы", "2020-2021 годы"),
+          df=FALSE)
+
+
+mod_t_1 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width -EstMin-EstMax  - Date, data = time1)
+#summary(mod_t_1)
+mod_t_2 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width -EstMin-EstMax - Date, data = time2)
+#summary(mod_t_2)
+mod_t_3 <- lm(I(log(AucPrice)) ~ . + I(Height*Width) - Height - Width -EstMin-EstMax - Date, data = time3)
+#summary(mod_t_1)
+
+stargazer(mod_t_1,mod_t_2,mod_t_3, 
+          title="Гедонистические регрессии по временным периодам", type="html", out = "По периодам.html",
+          se=list(cse(mod_t_1), cse(mod_t_2), cse(mod_t_3)),
+          column.labels=c("2004-2008 годы", "2009-2015 годы", "2020-2021 годы"),
+          df=FALSE)
+
+############ CURRENCY REGRESSION ###################
+
+sales <- subset(art, select = c(- USA, - Name, - Dead, - Born, - Died, - Depth, - Square, - Medium, - Date))
+sales <-  dplyr::filter(sales, AucPrice>62)
+sales <-  dplyr::filter(sales, AucPrice<250000)
+sales$Month <- as.factor(sales$Month)
+sales$Year <- as.factor(sales$Year)
+sales$Type <- as.factor(sales$Type)
+sales <- sales[-which(Cook > 1),]
+
+mean(usd$AucPrice)
+
+usd <-  dplyr::filter(sales, Currency == 1)
+mean(usd$AucPrice)
+mean(usd$SothChr)
+mod_usd <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax) - Currency , data = usd)
+summary(mod_usd)
+
+eur <-  dplyr::filter(sales, Currency == 2)
+mean(eur$AucPrice)
+mean(eur$SothChr)
+mod_eur <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax) - Currency, data = eur)
+summary(mod_eur)
+
+gbp <-  dplyr::filter(sales, Currency == 3)
+mean(gbp$AucPrice)
+mean(gbp$SothChr)
+mod_gbp <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax) - Currency, data = gbp)
+summary(mod_gbp)
+
+stargazer(mod_usd,mod_eur,mod_gbp, 
+          title="Гедонистические регрессии по территориальным рынкам", type="html", out = "Гедонистические регрессии по территориальным рынкам.html",
+          se=list(cse(mod_usd), cse(mod_eur), cse(mod_gbp)),
+          column.labels=c("Американский рынок", "Европейский рынок", "Британский рынок"),
+          df=FALSE)
+
+#описательная статистика
+
+stargazer(as.data.frame(usd), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика американского рынка", 
+          out="describeusd.html")
+
+stargazer(as.data.frame(eur), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика европейского рынка", 
+          out="describeeur.html")
+
+stargazer(as.data.frame(gbp), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Описательная статистика британского рынка", 
+          out="describegbp.html")
+
+
+############ TYPE REGRESSION ###################
+
+sales <- subset(art, select = c(- USA, - Name, - Dead, - Born, - Died, - Depth, - Square, - Medium, - Day, - Date))
+sales <-  dplyr::filter(sales, AucPrice>62)
+sales <-  dplyr::filter(sales, AucPrice<250000)
+sales$Month <- as.factor(sales$Month)
+sales$Year <- as.factor(sales$Year)
+sales$Type <- as.numeric(sales$Type)
+
+
+fineart <-  dplyr::filter(sales, Type == 1)
+mod_fineart <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin + log(EstMin) - EstMax + log(EstMax), data = fineart)
+summary(mod_fineart)
+
+uniquegraphics <-  dplyr::filter(sales, Type == 2)
+mod_uniquegraphics <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax), data = uniquegraphics)
+summary(mod_uniquegraphics)
+
+tiragegraphics <-  dplyr::filter(sales, Type == 3)
+mod_tiragegraphics <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax), data = tiragegraphics)
+summary(mod_tiragegraphics)
+
+sculpture <-  dplyr::filter(sales, Type == 4)
+mod_sculpture <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax), data = sculpture)
+summary(mod_sculpture)
+
+photograph <-  dplyr::filter(sales, Type == 5)
+mod_photograph <- lm(I(log(AucPrice)) ~ . - Type + I(Height*Width) - Height - Width -EstMin+log(EstMin)-EstMax+log(EstMax), data = photograph)
+summary(mod_photograph)
+
+
+stargazer(as.data.frame(fineart), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Живопись", 
+          out="describefine.html")
+
+stargazer(as.data.frame(uniquegraphics), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Уникальная графика", 
+          out="describeuni.html")
+
+stargazer(as.data.frame(tiragegraphics), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Тиражная графика", 
+          out="describetira.html")
+
+stargazer(as.data.frame(sculpture), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Скульптура", 
+          out="describesculpt.html")
+
+stargazer(as.data.frame(photograph), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Фотография", 
+          out="describephoto.html")
+
+#выгружаем
+stargazer(mod_fineart, mod_uniquegraphics, mod_tiragegraphics,
+          title="Гедонистические регрессии по типам искусства", type="html", out = "Гедонистические регрессии по  типам искусства.html",
+          se=list(cse(mod_fineart), cse(mod_uniquegraphics), cse(mod_tiragegraphics)),
+          column.labels=c("Живопись", "Уникальная графика", "Тиражная графика"),
+          df=FALSE)
+
+stargazer( mod_sculpture, mod_photograph,
+           title="Гедонистические регрессии по типам искусства, продолжение", type="html", out = "Гедонистические регрессии по  типам искусства2.html",
+           se=list(cse(mod_sculpture), cse(mod_photograph)),
+           column.labels=c("Скульптура", "Фотография"),
+           df=FALSE)
+
+stargazer(mod_sculpture, mod_photograph)
+
+####################### Эффект шедевра ####################
+
+masterpiece <- subset(art, select = c(- Date, - USA, - Name, - Dead, - Born, - Died, - Depth, - Square, - Medium))
+masterpiece <-  dplyr::filter(masterpiece, AucPrice>250000)
+
+
+quantile(masterpiece$AucPrice, 0.95)
+masterpiece$Month <- as.factor(masterpiece$Month)
+masterpiece$Year <- as.factor(masterpiece$Year)
+masterpiece$Type <- as.factor(masterpiece$Type)
+
+mod_mp <- lm(I(log(AucPrice)) ~ . - EstMin - Ages - Type - Premium - Stamped - Inscribed - Dating - Day - Month + I(Height * Width) - Height - Width - Currency, data = masterpiece)
+summary(mod_mp)
+
+############# Онлайн продажи #################
+
+online <- read_excel("Desktop/ChristiesOnline2020.xlsx")
+online$Month <- as.factor(online$Month)
+online$Type <- as.factor(online$Type)
+online$Currency <- as.factor(online$Currency)
+online$Square <-  online$Square/10000
+online$Height <-  online$Height/100
+online$Width <-  online$Width/100
+
+
+mod_online <- lm(I(log(AucPrice)) ~ . - Height - Width, data = online)
+mod_online2 <- lm(I(log(AucPrice)) ~ . - Square, data = online)
+
+AIC(mod_online, mod_online2) #первая лучше
+resettest(mod_online)
+plot(mod_online, which = 1)
+plot(mod_online, which = 2)
+plot(mod_online, which = 3)
+bptest(mod_online)
+summary(mod_online)
+
+
+#описательная статистика
+stargazer(as.data.frame(online), 
+          type = 'html', min.max=TRUE, mean.sd = TRUE, 
+          nobs = FALSE , median = TRUE, iqr = FALSE, 
+          digits=1, align=T, 
+          title = "Онлайн-рынок", 
+          out="describeOnline.html")
+
+#выгружаем
+stargazer(mod_online,
+          title="Гедонистическая регрессия для онлайн-аукционов", header = FALSE, type="html", out = "ОнлайнАукционы.html",
+          se=list(cse(mod_online)),
+          column.labels=c("Онлайн-аукционы"),
+          df=FALSE)
+
+
+
+###################HECKMAN######################
+heck <- read_excel("Desktop/FinalDATASETDIPLOM.xlsx")
+heck$Born <- as.numeric(heck$Born)
+heck$Died <- as.numeric(heck$Died)
+heck$Dead <- as.numeric(heck$Dead)
+heck$Ages <- as.numeric(heck$Ages)
+heck$Width <- as.numeric(heck$Width)
+heck$Height <- as.numeric(heck$Height)
+heck$Depth <- as.numeric(heck$Depth)
+heck$Signed <- as.numeric(heck$Signed)
+heck$Stamped <- as.numeric(heck$Stamped)
+heck$Inscribed <- as.numeric(heck$Inscribed)
+heck$Dating <- as.numeric(heck$Dating)
+heck$LotNum <- as.numeric(heck$LotNum)
+heck$Date <- as.Date(heck$Date, format = "%m-%d-%Y")
+heck$Day <- as.numeric(heck$Day)
+heck$Month <- as.numeric(heck$Month)
+heck$Year <- as.numeric(heck$Year)
+heck$SothChr <- as.numeric(heck$SothChr)
+heck$Premium <- as.numeric(heck$Premium)
+heck$AucPrice <- as.numeric(heck$AucPrice)
+heck$EstMin <- as.numeric(heck$EstMin)
+heck$EstMax <- as.numeric(heck$EstMax)
+heck$Currency <- as.numeric(heck$Currency)
+heck$Type <- as.numeric(heck$Type)
+heck$USA <- as.numeric(heck$USA)
+heck$Medium <- as.numeric(heck$Medium)
+
+###heck$AucPrice[heck$AucPrice == 0] <- NA
+
+heck$Sold <- NA
+heck[,28] <- ifelse(heck[,23]== 0, 0, 1)
+
+heck <-  dplyr::filter(heck, Height> 10)
+heck <-  dplyr::filter(heck, Height<150)
+heck <-  dplyr::filter(heck, Width> 10)
+heck <-  dplyr::filter(heck, Width< 150)
+heck <-  dplyr::filter(heck, LotNum< 1500)
+heck <-  dplyr::filter(heck, LotNum> 0)
+heckNA <-  dplyr::filter(heck, Sold == 0)
+heck <-  dplyr::filter(heck, AucPrice > 0)
+heck <-  dplyr::filter(heck, EstMin> 0)
+heck <-  dplyr::filter(heck, EstMax> 0)
+heck <-  dplyr::filter(heck, AucPrice> 62)
+heck <-  dplyr::filter(heck, AucPrice<250000)
+
+fullheck <- rbind(heckNA, heck)
+hk <- subset(fullheck, select = c(- USA, - Name, - Date, - Dead, - Born, - Died, - Depth, - Square, - Medium))
+
+hk$Month <- as.factor(hk$Month)
+hk$Year <- as.factor(hk$Year)
+hk$Currency <- as.factor(hk$Currency)
+hk$Type <- as.factor(hk$Type)
+hk$Sold <- as.numeric(hk$Sold)
+
+#PROBIT MODEL
+
+glm_1 <- glm(Sold ~ Ages + Signed + Stamped + Inscribed + 
+               Dating + LotNum + Month + Year + SothChr + Currency + Premium + 
+               Type + I(Height * Width) + EstMin + EstMax, data = hk)
+
+summary(glm_1)
+
+heckit <- selection(selection = Sold ~ Ages + Signed + Stamped + Inscribed + Dating + LotNum  + Year + SothChr + Currency + Premium + Type + I(Height * Width) + EstMin + EstMax,
+                    outcome = I(log(AucPrice)) ~ Ages + Signed + Stamped + Inscribed + Dating + LotNum  + Year + SothChr + Currency + Premium + Type + I(Height * Width) + log(EstMin) + log(EstMax),
+                    data = hk,
+                    method = "2step" ) 
+summary(heckit)
+
+
+stargazer(mod2.2,heckit, 
+          title="Сравнение Гедонистической регрессии и Модели Хекмана", type="html", out = "Сравнение Гедонистической регрессии и Модели Хекмана.html",
+          column.labels=c("Гедонистическая регрессия", "Модель Хекмана"),
+          df=FALSE)
+
+
+
+
+
+############### Повторные продажи ################
+art <- read_excel("Desktop/FinalDATASETDIPLOM.xlsx")
+art <-  dplyr::filter(art, Height> 10)
+art <-  dplyr::filter(art, Height<150)
+art$Height <-  art$Height/100
+art <-  dplyr::filter(art, Width> 10)
+art <-  dplyr::filter(art, Width< 150)
+art$Width <-  art$Width/100
+art <-  dplyr::filter(art, LotNum< 1500)
+art <-  dplyr::filter(art, LotNum> 0)
+art <-  dplyr::filter(art, EstMin> 0)
+art <-  dplyr::filter(art, EstMax> 0)
+art <-  dplyr::filter(art, AucPrice>62)
+art <-  dplyr::filter(art, AucPrice<342889)
+
+repeated_t <- as.data.frame(table(art$Name))
+repeated_t <- filter(repeated_t, Freq > 1)
+repeated<- NULL
+for(i in 1:length(repeated_t$Var1)){
+  cat('number #', i,'\n' )
+  repeated<-rbind(repeated, filter(art, Name==repeated_t$Var1[i]))
+}
+
+repeated$Month <- as.factor(repeated$Month)
+repeated$Year <- as.factor(repeated$Year)
+repeated$Currency <- as.factor(repeated$Currency)
+repeated$Type <- as.factor(repeated$Type)
+
+rep <- subset(repeated, select = c(- USA, - Name, - Date, - Dead, - Born, - Died, - Depth, - Square, - Medium))
+
+rep_1 <- lm(log(AucPrice) ~ . + Height*Width - Height - Width +log(EstMax) + log(EstMin)- EstMin - EstMax, data = rep)
+rep_0 <- lm(log(AucPrice) ~ . - EstMin - EstMax, data = rep)
+AIC(rep_0, rep_1)
+
+summary(rep_0)
+bptest(rep_0)
+resettest(rep_0)
+
+############# ИНДЕКСЫ #############
+#гедонистиеский 
+summary(mod2.2)$coefficients
+ind <-  data.frame(summary(mod2.2)$coefficients)
+ind2 <- ind[-c(1:18),]
+ind3 <- ind2[-c(14:25),]
+ind3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+ind3$ind <- exp(ind3$Estimate+ind3$Std..Error/2)
+View(ind3)
+
+#хекмана
+he <- heckit$lm
+he$coefficients
+summary(he)
+indheck <-  data.frame(summary(he)$coefficients)
+indheck2 <- indheck[-c(1:7),]
+indheck3 <- indheck2[-c(14:26),]
+indheck3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indheck3$ind <- exp(indheck3$Estimate+indheck3$Std..Error/2)
+
+#повторных продаж
+summary(rep_0)$coefficients
+indrep <-  data.frame(summary(rep_0)$coefficients)
+indrep2 <- indrep[-c(1:21),]
+indrep3 <- indrep2[-c(14:22),]
+indrep3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indrep3$ind <- exp(indrep3$Estimate+indrep3$Std..Error/2)
+
+#эффект шедевра
+summary(mod_mp)$coefficients
+indmp <-  data.frame(summary(mod_mp)$coefficients)
+indmp2 <- indmp[-c(1:4),]
+indmp3 <- indmp2[-c(14 :16),]
+indmp3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indmp3$ind <- exp(indmp3$Estimate+indmp3$Std..Error/2)
+
+View(indmp3)
+indexes <- data.frame(Year = c(2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2020,2021), Hedonic = ind3$ind, Heckman = indheck3$ind, Repeated = indrep3$ind, Masterpiece = indmp3$ind)
+y4 <-  data.frame(Year = 2004, Hedonic = 1, Heckman = 1, Repeated = 1, Masterpiece = 1)
+
+index2004 <-  rbind(y4, indexes)
+
+x <- index2004
+z <- data.frame(Year = c(0,0,0,0,0,0,0,0,0,0,0,0,0), Hedonic =c(0,0,0,0,0,0,0,0,0,0,0,0,0), Heckman = c(0,0,0,0,0,0,0,0,0,0,0,0,0), Repeated = c(0,0,0,0,0,0,0,0,0,0,0,0,0), Masterpiece = c(0,0,0,0,0,0,0,0,0,0,0,0,0))
+z[1] <- x[1]
+for(i in 2:13) {
+  z$Hedonic[i] <- (x$Hedonic[i]/x$Hedonic[i-1])*100 - 100
+}
+for(i in 2:13) {
+  z$Heckman[i] <- (x$Heckman[i]/x$Heckman[i-1])*100 - 100
+}
+
+for(i in 2:13) {
+  z$Repeated[i] <- (x$Repeated[i]/x$Repeated[i-1])*100 - 100
+}
+for(i in 2:13) {
+  z$Masterpiece[i] <- (x$Masterpiece[i]/x$Masterpiece[i-1])*100 - 100
+}
+
+z <-z[-c(1),]
+z <-z[-c(12),]
+
+z$Year <- factor(z$Year)
+
+summary(z)
+
+#график индексов
+indexes <-indexes[-c(12,13),]
+indexes$Year <- as.factor(indexes$Year)
+graphind <- indexes %>% pivot_longer(cols = "Hedonic":"Masterpiece", names_to = "Name", values_to = "Value") 
+ggplot(data = graphind, aes(x = Year, y = Value, group = Name, color = Name)) + geom_line() + geom_point() + theme_bw() + scale_color_manual(values = c("#002357","#FFD802", "#024D8C", "#F78A8F"), labels = c("Индекс по модели Хекмана", "Индекс по методу гедонистической регрессии", "Индекс по рынку шедевров", "Индекс по методу повторных продаж")) + xlab("Год") + ylab("Значение индекса")
+
+#график доходности
+graphz <- z %>% pivot_longer(cols = "Hedonic":"Masterpiece", names_to = "Name", values_to = "Value")
+ggplot(data = graphz, aes(x = Year, y = Value, group = Name, color = Name)) + geom_line() + geom_point() + theme_bw() + scale_color_manual(values = c("#002357","#FFD802", "#024D8C", "#F78A8F"), labels = c("Доходность по модели Хекмана", "Доходность по методу гедонистической регрессии", "Доходность по рынку шедевров", "Доходность по методу повторных продаж")) + xlab("Год") + ylab("Доходность")
+
+
+
+#индексы по видам искусства
+#живопись
+
+indfine <-  data.frame(summary(mod_fineart)$coefficients)
+indfine2 <- indfine[-c(1:18),]
+indfine3 <- indfine2[-c(14:25),]
+indfine3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indfine3$ind <- exp(indfine3$Estimate+indfine3$Std..Error/2)
+
+#уникальная графика
+
+indung <-  data.frame(summary(mod_uniquegraphics)$coefficients)
+indung2 <- indung[-c(1:18),]
+indung3 <- indung2[-c(14:25),]
+indung3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indung3$ind <- exp(indung3$Estimate+indung3$Std..Error/2)
+
+#тиражная графика
+
+indtirg <-  data.frame(summary(mod_tiragegraphics)$coefficients)
+indtirg2 <- indtirg[-c(1:18),]
+indtirg3 <- indtirg2[-c(14:25),]
+indtirg3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indtirg3$ind <- exp(indtirg3$Estimate+indtirg3$Std..Error/2)
+
+#скульптура
+
+indsculp <-  data.frame(summary(mod_sculpture)$coefficients)
+indsculp2 <- indsculp[-c(1:18),]
+indsculp3 <- indsculp2[-c(14:25),]
+indsculp3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indsculp3$ind <- exp(indsculp3$Estimate+indsculp3$Std..Error/2)
+
+#фотография
+
+indphoto <-  data.frame(summary(mod_photograph)$coefficients)
+indphoto2 <- indphoto[-c(1:18),]
+indphoto3 <- indphoto2[-c(14:25),]
+indphoto3$ind <- c(0,0,0,0,0,0,0,0,0,0,0,0,0)
+indphoto3$ind <- exp(indphoto3$Estimate+indphoto3$Std..Error/2)
+
+
+typeindexes <- data.frame(Year = c(2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2020,2021), FineArt = indfine3$ind, UniqueGraphics = indung3$ind, TirageGraphics = indtirg3$ind, Sculpture = indsculp3$ind, Photo = indphoto3$ind)
+y5 <-  data.frame(Year = 2004, FineArt = 1 , UniqueGraphics = 1, TirageGraphics = 1, Sculpture = 1, Photo = 1)
+
+
+typeindex2004 <- rbind(y5, typeindexes)
+
+
+
+#график индексов
+typeindexes <-typeindexes[-c(12,13),]
+graphtypeind <- typeindexes %>% pivot_longer(cols = "FineArt":"Photo", names_to = "Name", values_to = "Value") 
+ggplot(data = graphtypeind, aes(x = Year, y = Value, group = Name, color = Name)) + geom_line() + geom_point() + theme_bw() + scale_color_manual(values = c("#002357","#FFD802", "#024D8C", "#F78A8F", "#3B887B"), labels = c("Индекс по модели Хекмана", "Индекс по методу гедонистической регрессии", "Индекс по рынку шедевров", "Индекс по методу повторных продаж")) + xlab("Год") + ylab("Значение индекса")
+
+
+
+
+############## CLUSTER #######
+
+clust <- subset(art, select = c( - Signed, - Premium, - LotNum, - EstMin, - EstMax, - USA, - Name, - Date, - Dead, - Born, - Died, - Depth, - Medium, - Height, - Width, - Stamped, - Inscribed, - Dating, - Month, - Day, - Square))
+clust <- dplyr::filter(clust, Year > 2019)
+clust <- dplyr::filter(clust, AucPrice > 0)
+clust <- dplyr::filter(clust, AucPrice < 250000)
+clust <- subset(clust, select = c(- Year))
+corrplot(cor(clust))
+
+#РїРѕСЃС‚СЂРѕРёРј РјРѕРґРµР»СЊ
+mod_pca_1 <- PCA(clust)
+
+#СЃРѕР±СЃС‚РІРµРЅРЅС‹Рµ С‡РёСЃР»Р° - СЃСѓРјРјР° СЃРѕР±СЃС‚РІРµРЅРЅС‹С… С‡РёСЃРµР» - СЃР»РµРґ РјР°С‚СЂРёС†С‹
+mod_pca_1$eig
+
+#РіСЂР°С„РёРє РєР°РјРµРЅРёСЃС‚РѕР№ РѕСЃС‹РїРё - СЃРєРѕР»СЊРєРѕ РїСЂРѕС†РµРЅС‚РѕРІ РґРёСЃРїРµСЂСЃРёРё РѕР±СЉСЏСЃРЅСЏРµС‚СЃСЏ РєРѕРјРїРѕРЅРµРЅС‚РѕР№
+fviz_eig(mod_pca_1, addlabels = TRUE, title = 'График каменистой осыпи', ylab = 'Процент, объясняющий дисперсию', xlab = 'Номер компоненты', barfill = "lightpink",
+         barcolor = "black") +  theme_minimal() 
+
+
+#РјР°С‚СЂРёС†Р° РЅР°РіСЂСѓР•РѕРє
+mod_pca_1$var$coord
+corrplot(mod_pca_1$var$coord, is.corr = FALSE) 
+corrplot(mod_pca_1$var$coord, method = "number", is.corr = FALSE) + theme_minimal()
+
+#РєРІР°РґСЂР°С‚С‹ РєРѕСЌС„С„РёС†РёРµРЅС‚РѕРІ
+mod_pca_1$var$cos2
+rowSums(mod_pca_1$var$cos2)
+corrplot(mod_pca_1$var$cos2, is.corr = FALSE)
+
+
+#РєР°РєРёРµ РІРµРєС‚РѕСЂС‹ РѕР±СЉСЏСЃРЅСЏСЋС‚?
+fviz_cos2(mod_pca_1, choice = "var", axes = 1:2, Name = "РћР±СЉСЏСЃРЅСЏСЋС‰РёРµ РІРµРєС‚РѕСЂС‹",  fill = "lightpink", color = "black") 
+
+
+#РёР•РѕР±СЂР°Р•РёРј
+fviz_pca_ind(mod_pca_1, repel = TRUE)
+fviz_pca_ind(mod_pca_1, pointsize = "cos2", pointshape = 21, fill = "#FF3366", repel = TRUE) + theme_minimal()
+
+
+fviz_dend(model_clust, palette = "simpsons", rect = TRUE, rect_fill = TRUE, cex = 0.8,
+          rect_border = "simpsons") + theme_minimal()
+fviz_dend(clust) + theme_minimal()
+
+#Модель
+mod_clust <- HCPC(mod_pca_1, graph = FALSE, nb.clust = 3)
+                
+#выделяет три кластера
+#Строим кластеры в пространстве главных компонент
+fviz_cluster(mod_clust, repel = TRUE, main = "Кластеры в пространстве главных компонент", pointsize = 0.3, geom.ind = "point")
+
+
+#Интерпретация
+mod_clust$desc.axes
+mod_clust$data.clust
+mod_clust$desc.var
+mod_clust$desc.axes
+mod_clust$desc.ind$para
