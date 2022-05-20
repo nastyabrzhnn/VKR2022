@@ -113,8 +113,9 @@ ggplot(art) +
   aes(x = Width) + 
   geom_histogram(bins = 30L, fill = "lightpink", color = "black") + 
   theme_minimal() + labs(x = 'Ширина', y='Количество работ', Name = '')
-
-art$Width <-  art$Width/100
+  
+art$Width <- art$Width*art*Depth
+art$Width <-  art$Width/10000
 
 #Номер лота
 art <-  dplyr::filter(art, LotNum< 1500)
